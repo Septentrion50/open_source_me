@@ -1,0 +1,20 @@
+{
+  "name": "open_source_me",
+  "version": "1.0.0",
+  "description": "This project is dedicated to the people who want to take part in an open source project but can't find a project with the technology they want to use.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Septentrion50/open_source_me.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Septentrion50/open_source_me/issues"
+  },
+  "homepage": "https://github.com/Septentrion50/open_source_me#readme"
+}
