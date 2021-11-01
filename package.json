@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Septentrion50/open_source_me/issues"
   },
-  "homepage": "https://github.com/Septentrion50/open_source_me#readme"
+  "homepage": "https://github.com/Septentrion50/open_source_me#readme",
+  "dependencies": {
+    "node-fetch": "^3.0.0"
+  }
 }
