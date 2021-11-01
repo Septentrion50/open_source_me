@@ -19,11 +19,17 @@
   },
   "homepage": "https://github.com/Septentrion50/open_source_me#readme",
   "dependencies": {
+    "dotenv": "^10.0.0",
     "graphql": "^16.0.0",
+<<<<<<< HEAD
     "node-fetch": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@babel/node": "^7.16.0"
+=======
+    "node-fetch": "^3.0.0",
+    "octokit": "^1.7.0"
+>>>>>>> connect-jocelin
   }
 }
