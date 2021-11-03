@@ -5,7 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "ts-node index.ts"
+		"start": "ts-node index.ts",
+		"query": "ts-node query.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -20,6 +21,7 @@
 	"homepage": "https://github.com/Septentrion50/open_source_me#readme",
 	"dependencies": {
 		"dotenv": "^10.0.0",
+		"nodemon": "^2.0.14",
 		"ts-node": "^10.4.0",
 		"typescript": "^4.4.4"
 	},
