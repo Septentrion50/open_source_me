@@ -4,26 +4,48 @@ const { Octokit, App, Action } = require("octokit");
 
 const octokit = new Octokit({ auth: `${process.env["GH_ACCESS_TOKEN"]}` });
 
+
+interface Label{
+  name:string;
+  color:string;
+}
+interface Assignees{
+  login:string;
+  avatar_url:string;
+}
+
 interface RestIssueRObject {
-  url: string;
-  owner: string;
-  repo: string;
+  issue_url: string;
+  issue_number: number;
+  repository_url: string;
+  created_at: string;
+  updated_at: string;
+  labels: Label[];
+  assignees: Assignees[];
+  repository_owner: string;
+  repository_name: string;
 }
 
 const getRESTIssues = async (
   queryParams: string
 ): Promise<RestIssueRObject[]> => {
   const response = await octokit.request(`GET /search/issues?q=${queryParams}`);
-  const repositoriesUrls: RestIssueRObject[] = [];
-  response.data.items.forEach((repo: any) => {
-    const splittedRepoUrl = repo.repository_url.split("/");
-    repositoriesUrls.push({
-      url: repo.repository_url,
-      owner: splittedRepoUrl[4],
-      repo: splittedRepoUrl[5],
+  const issueData: RestIssueRObject[] = [];
+  response.data.items.forEach((issue: any) => {
+    const splittedRepoUrl = issue.repository_url.split("/");
+    issueData.push({
+      issue_url:issue.url,
+      issue_number:issue.number,
+      repository_url: issue.repository_url,
+      created_at: issue.created_at,
+      updated_at: issue.updated_at,
+      labels: issue.labels,
+      assignees: issue.assignees,
+      repository_owner: splittedRepoUrl[4],
+      repository_name: splittedRepoUrl[5],
     });
   });
-  return repositoriesUrls;
+  return issueData;
 };
 
 interface Language {
@@ -32,10 +54,7 @@ interface Language {
   color: string;
 }
 
-interface RepoInfo {
-  url: string;
-  owner: string;
-  name: string;
+interface RepoInfo extends RestIssueRObject  {
   languages: Language[];
   totalSize: number;
 }
@@ -45,10 +64,10 @@ const calcPercent = (size: number, totalSize: number): number => {
 };
 
 const getRepoDetailsGQL = async (
-  repos: RestIssueRObject[]
+  issuesInfo: RestIssueRObject[]
 ): Promise<RepoInfo[]> => {
   const output = [];
-  for (let i = 0; i < repos.length; i++) {
+  for (let i = 0; i < issuesInfo.length; i++) {
     let { repository } = await octokit.graphql(
       `
     query lookAtRepos ($owner: String!, $name: String!) {
@@ -68,8 +87,8 @@ const getRepoDetailsGQL = async (
     }
     `,
       {
-        owner: repos[i].owner,
-        name: repos[i].repo,
+        owner: issuesInfo[i].repository_owner,
+        name: issuesInfo[i].repository_name,
       }
     );
     //calculer la size/totalSize
@@ -77,18 +96,21 @@ const getRepoDetailsGQL = async (
     //colour
 
     let repInfo = {
-      url: repository.url,
-      owner: repos[i].owner,
-      name: repos[i].repo,
+      issue_url:issuesInfo[i].issue_url,
+      issue_number:issuesInfo[i].issue_number,
+      repository_url: issuesInfo[i].repository_url,
+      created_at: issuesInfo[i].created_at,
+      updated_at: issuesInfo[i].updated_at,
+      labels: issuesInfo[i].labels,
+      assignees: issuesInfo[i].assignees,
+      repository_owner: issuesInfo[i].repository_owner,
+      repository_name: issuesInfo[i].repository_name,
       totalSize: repository.languages?.totalSize,
       languages: extractLanguagesInfo(
         repository.languages.edges,
         repository.languages?.totalSize
       ),
     };
-
-    console.log(repInfo);
-    console.log(repInfo.languages);
     output.push(repInfo);
   }
   return output;
@@ -109,21 +131,33 @@ const extractLanguagesInfo = (
   return languagesInfo;
 };
 
-// (async () => {
-// await getRepoDetailsGQL(await getRESTIssues("q=is:open"));
-// })();
+
 
 const typeDefs = gql`
+  type Label{
+    name:String
+    color:String
+  }
+  type Assignees{
+    login:String
+    avatar_url:String
+  }
   type Language {
     name: String
     percentage: Float
     color: String
   }
   type RepoInfo {
-    url: String
-    owner: String
-    name: String
+    issue_url:String,
+    repository_url:String,
+    created_at:String,
+    updated_at:String,
+    labels:[Label],
+    assignees:[Assignees],
+    issue_number:Int,
     languages: [Language]
+    repository_owner: String
+    repository_name: String
     totalSize: Int
   }
   type Query {
