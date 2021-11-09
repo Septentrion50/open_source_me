@@ -1,4 +1,5 @@
 require("dotenv").config();
+const { ApolloServer, gql } = require("apollo-server");
 const { Octokit, App, Action } = require("octokit");
 
 const octokit = new Octokit({ auth: `${process.env["GH_ACCESS_TOKEN"]}` });
@@ -12,7 +13,7 @@ interface RestIssueRObject {
 const getRESTIssues = async (
   queryParams: string
 ): Promise<RestIssueRObject[]> => {
-  const response = await octokit.request(`GET /search/issues?${queryParams}`);
+  const response = await octokit.request(`GET /search/issues?q=${queryParams}`);
   const repositoriesUrls: RestIssueRObject[] = [];
   response.data.items.forEach((repo: any) => {
     const splittedRepoUrl = repo.repository_url.split("/");
@@ -33,6 +34,8 @@ interface Language {
 
 interface RepoInfo {
   url: string;
+  owner: string;
+  name: string;
   languages: Language[];
   totalSize: number;
 }
@@ -75,6 +78,8 @@ const getRepoDetailsGQL = async (
 
     let repInfo = {
       url: repository.url,
+      owner: repos[i].owner,
+      name: repos[i].repo,
       totalSize: repository.languages?.totalSize,
       languages: extractLanguagesInfo(
         repository.languages.edges,
@@ -104,6 +109,45 @@ const extractLanguagesInfo = (
   return languagesInfo;
 };
 
-(async () => {
-  await getRepoDetailsGQL(await getRESTIssues("q=is:open"));
-})();
+// (async () => {
+// await getRepoDetailsGQL(await getRESTIssues("q=is:open"));
+// })();
+
+const typeDefs = gql`
+  type Language {
+    name: String
+    percentage: Float
+    color: String
+  }
+  type RepoInfo {
+    url: String
+    owner: String
+    name: String
+    languages: [Language]
+    totalSize: Int
+  }
+  type Query {
+    getIssues(input: String): [RepoInfo]
+  }
+  type Mutation {
+    saveIssue: String
+  }
+`;
+
+const resolvers = {
+  Query: {
+    getIssues: async (_parent: any, { input }: { input: string }) => {
+      return await getRepoDetailsGQL(await getRESTIssues(input));
+    },
+  },
+};
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+});
+
+server.listen().then(({ url }: { url: string }) => {
+  console.log(`Server ready at ${url}`);
+  return;
+});
