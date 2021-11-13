@@ -1,4 +1,3 @@
-
 import { Octokit } from "octokit";
 import { RestIssueRObject, RepoInfo  } from "./type";
 import {extractLanguagesInfo} from './utils'
@@ -8,7 +7,9 @@ const octokit = new Octokit({ auth: `${process.env["GH_ACCESS_TOKEN"]}` });
 export const getRESTIssues = async (
     queryParams: string
   ): Promise<RestIssueRObject[]> => {
-    const response = await octokit.request(`GET /search/issues?q=${queryParams}`);
+    const query = encodeURIComponent(`q=is:open ${queryParams}`)
+    const response = await octokit.request(`GET /search/issues?q=${query}`);
+    console.log("response",response)
     const issueData: RestIssueRObject[] = [];
     response.data.items.forEach((issue: any) => {
       const splittedRepoUrl = issue.repository_url.split("/");
