@@ -1,7 +1,11 @@
 require("dotenv").config();
-const { ApolloServer, gql } = require("apollo-server");
-const { Octokit, App, Action } = require("octokit");
+import  { ApolloServer, gql } from "apollo-server-express";
+import { Octokit, App } from "octokit";
+import express from 'express';
+import cors from "cors";
 
+const app = express()
+const PORT = process.env.PORT || 4000;
 const octokit = new Octokit({ auth: `${process.env["GH_ACCESS_TOKEN"]}` });
 
 
@@ -180,8 +184,8 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
-
-server.listen().then(({ url }: { url: string }) => {
-  console.log(`Server ready at ${url}`);
+app.use(cors())
+app.listen(PORT, () =>{
+  console.log(`Server ready at http://localhost:${PORT}`);
   return;
-});
+})
