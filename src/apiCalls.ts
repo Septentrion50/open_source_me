@@ -7,9 +7,9 @@ const octokit = new Octokit({ auth: `${process.env["GH_ACCESS_TOKEN"]}` });
 export const getRESTIssues = async (
     queryParams: string
   ): Promise<RestIssueRObject[]> => {
-    const query = encodeURIComponent(`q=is:open ${queryParams}`)
+    const query = encodeURIComponent(`is:open ${queryParams}`)
     const response = await octokit.request(`GET /search/issues?q=${query}`);
-    console.log("response",response)
+    console.log(response)
     const issueData: RestIssueRObject[] = [];
     response.data.items.forEach((issue: any) => {
       const splittedRepoUrl = issue.repository_url.split("/");
@@ -28,11 +28,16 @@ export const getRESTIssues = async (
     return issueData;
   };
 
+
 export const getRepoDetailsGQL = async (
-    issuesInfo: RestIssueRObject[]
-  ): Promise<RepoInfo[]> => {
-    const output = [];
-    for (let i = 0; i < issuesInfo.length; i++) {
+    repository_url: string
+  ): Promise<RepoInfo> => {
+    const splittedRepoUrl =  repository_url.split("/")
+    console.log("here",repository_url)
+    const repository_owner = splittedRepoUrl[splittedRepoUrl.length - 2];
+    const repository_name = splittedRepoUrl[splittedRepoUrl.length - 1];
+    console.log("repository_owner", repository_owner)
+    console.log("repository_name", repository_name)
       let { repository } = await octokit.graphql(
         `
       query lookAtRepos ($owner: String!, $name: String!) {
@@ -52,28 +57,19 @@ export const getRepoDetailsGQL = async (
       }
       `,
         {
-          owner: issuesInfo[i].repository_owner,
-          name: issuesInfo[i].repository_name,
+          owner: repository_owner,
+          name: repository_name,
         }
       );
   
       let repInfo = {
-        issue_url: issuesInfo[i].issue_url,
-        issue_number: issuesInfo[i].issue_number,
-        repository_url: issuesInfo[i].repository_url,
-        created_at: issuesInfo[i].created_at,
-        updated_at: issuesInfo[i].updated_at,
-        labels: issuesInfo[i].labels,
-        assignees: issuesInfo[i].assignees,
-        repository_owner: issuesInfo[i].repository_owner,
-        repository_name: issuesInfo[i].repository_name,
         totalSize: repository.languages?.totalSize,
         languages: extractLanguagesInfo(
           repository.languages.edges,
           repository.languages?.totalSize
         ),
       };
-      output.push(repInfo);
+      console.log("repInfo", repInfo)
+      return repInfo;
     }
-    return output;
-  };
+    

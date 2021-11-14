@@ -27,7 +27,7 @@ export interface Language {
     color: string;
   }
   
-export interface RepoInfo extends RestIssueRObject  {
+export interface RepoInfo   {
     languages: Language[];
     totalSize: number;
 }

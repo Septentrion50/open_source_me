@@ -30,6 +30,7 @@ type RepoInfo {
 }
 type Query {
   getIssues(input: String): [RepoInfo]
+  getRepoInfo(repository_url: String): RepoInfo
 }
 type Mutation {
   saveIssue: String
