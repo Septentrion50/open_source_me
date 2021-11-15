@@ -7,8 +7,9 @@ const octokit = new Octokit({ auth: `${process.env["GH_ACCESS_TOKEN"]}` });
 export const getRESTIssues = async (
     queryParams: string
   ): Promise<RestIssueRObject[]> => {
-    const query = encodeURIComponent(`is:open ${queryParams}`)
-    const response = await octokit.request(`GET /search/issues?q=${query}`);
+    const queryone = encodeURIComponent(`is:open`);
+    const querytwo = encodeURIComponent(`language:typescript`);
+    const response = await octokit.request(`GET /search/issues?q=${queryone}+${querytwo}`);
     console.log(response)
     const issueData: RestIssueRObject[] = [];
     response.data.items.forEach((issue: any) => {
